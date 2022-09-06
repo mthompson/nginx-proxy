@@ -296,6 +296,9 @@ server {
 {{/* Get the first cert name defined by containers w/ the same vhost */}}
 {{ $certName := (first (groupByKeys $containers "Env.CERT_NAME")) }}
 
+{{/* Get client_max_body_size defined by containers w/ the same vhost */}}
+{{ $clientMaxBodySize := or (first (groupByKeys $containers "Env.VIRTUAL_MAX_UPLOAD")) "1m" }}
+
 {{/* Get the best matching cert  by name for the vhost. */}}
 {{ $vhostCert := (closest (dir "/etc/nginx/certs") (printf "%s.crt" $host))}}
 
@@ -352,6 +355,8 @@ server {
 	listen [::]:{{ $external_https_port }} ssl http2 {{ $default_server }};
 	{{ end }}
 	{{ $access_log }}
+
+	client_max_body_size {{ $clientMaxBodySize }};
 
 	{{ template "ssl_policy" (dict "ssl_policy" $ssl_policy) }}
 
